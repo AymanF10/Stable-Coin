@@ -1,6 +1,5 @@
 import * as anchor from "@coral-xyz/anchor";
 import { Program } from "@coral-xyz/anchor";
-import 'rpc-websockets/dist/lib/client';
 import { Stablecoin } from "../target/types/stablecoin";
 import { PythSolanaReceiver } from "@pythnetwork/pyth-solana-receiver";
 
