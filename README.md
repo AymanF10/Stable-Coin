@@ -1,4 +1,4 @@
-# Enhanced Stablecoin Protocol
+# Stablecoin Protocol
 
 ## Overview
 A decentralized stablecoin protocol built on Solana, providing a robust mechanism for collateralized token minting with advanced risk management, multi-oracle price feeds, governance capabilities, and sophisticated liquidation strategies.
