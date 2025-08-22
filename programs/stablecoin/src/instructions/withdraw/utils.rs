@@ -10,10 +10,11 @@ pub fn withdraw_sol<'info>(
     from: &SystemAccount<'info>,
     to: &AccountInfo<'info>,
     amount: u64,
-   
 ) -> Result<()> {
+    // I create the PDA signer seeds to authorize the SOL withdrawal
     let signer_seeds: &[&[&[u8]]] = &[&[SEED_SOL_ACCOUNT, depositer_key.as_ref(), &[bump]]];
 
+    // I transfer the SOL from the collateral account to the recipient
     let _ = transfer(
         CpiContext::new_with_signer(
             system_program.to_account_info(),
@@ -35,9 +36,8 @@ pub fn burn_tokens<'info> (
     token_account: &InterfaceAccount<'info, TokenAccount>,
     _authority: &Signer<'info>,
     amount: u64,
-   
 ) -> Result<()> {
-
+    // I burn the stablecoins to reduce the total supply
     let _ = burn(
         CpiContext::new(
             token_program.to_account_info(),

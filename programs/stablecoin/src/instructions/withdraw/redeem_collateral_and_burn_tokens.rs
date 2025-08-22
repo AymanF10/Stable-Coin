@@ -5,11 +5,14 @@ use crate::{Collateral, Config, SEED_COLLATERAL_ACCOUNT, SEED_CONFIG_ACCOUNT, ch
 
 #[derive(Accounts)]
 pub struct RedeemCollateralAndBurnTokens<'info> {
-
+    // The user who wants to redeem their collateral
     #[account(mut)]
     pub depositer: Signer<'info>,
+    
+    // I need the price feed to calculate the health factor
     pub price_update: Account<'info, PriceUpdateV2>,
 
+    // I need the protocol configuration
     #[account(
         seeds = [SEED_CONFIG_ACCOUNT],
         bump = config_account.bump,
@@ -17,40 +20,45 @@ pub struct RedeemCollateralAndBurnTokens<'info> {
     )]
     pub config_account: Box<Account<'info, Config>>,
 
+    // The user's collateral account that tracks their position
     #[account(
         mut,
         seeds = [SEED_COLLATERAL_ACCOUNT, depositer.key().as_ref()],
         bump = collateral_account.bump,
         has_one = sol_account,
         has_one = token_account,
-    
     )]
     pub collateral_account: Account<'info, Collateral>,
 
+    // The SOL account holding the user's collateral
     #[account(mut)]
     pub sol_account: SystemAccount<'info>,
 
+    // The stablecoin mint account
     #[account(mut)]
     pub mint_account: InterfaceAccount<'info, Mint>,
 
+    // The user's token account holding their stablecoins
     #[account(mut)]
     pub token_account: InterfaceAccount<'info, TokenAccount>,
+    
+    // Required programs
     pub system_program: Program<'info, System>,
     pub token_program: Program<'info, Token2022>,
     pub associated_token_program: Program<'info, Token2022>,
 }
-
 
 pub fn process_redeem_collateral_and_burn_tokens(
     ctx: Context<RedeemCollateralAndBurnTokens>,
     amount_collateral: u64,
     amount_to_burn: u64,
 ) -> Result<()> {
-
+    // I update the collateral account to reflect the withdrawal
     let collateral_account = &mut ctx.accounts.collateral_account;
     collateral_account.lamport_balance = ctx.accounts.sol_account.lamports() - amount_collateral;
     collateral_account.amount_minted -= amount_to_burn;  
 
+    // I make sure the position will still be healthy after withdrawal
     check_health_factor(
         ctx.accounts.collateral_account.lamport_balance,
         &ctx.accounts.collateral_account,
@@ -58,6 +66,7 @@ pub fn process_redeem_collateral_and_burn_tokens(
         &ctx.accounts.price_update,
     )?;
 
+    // I burn the stablecoins first to ensure the user has them
     burn_tokens(
         &ctx.accounts.token_program,
         &ctx.accounts.mint_account,
@@ -66,6 +75,7 @@ pub fn process_redeem_collateral_and_burn_tokens(
         amount_to_burn,
     )?;
 
+    // Then I release the collateral back to the user
     withdraw_sol(
         ctx.accounts.collateral_account.bump_sol_account,
         &ctx.accounts.depositer.key(),

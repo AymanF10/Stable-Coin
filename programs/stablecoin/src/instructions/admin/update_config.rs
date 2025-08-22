@@ -1,9 +1,9 @@
 use anchor_lang::prelude::*;
 use crate::{state::Config, SEED_CONFIG_ACCOUNT};
 
-
 #[derive(Accounts)]
 pub struct UpdateConfig<'info> {
+    // I need to access the config account to update its parameters
     #[account(
         mut,
         seeds = [SEED_CONFIG_ACCOUNT],
@@ -11,9 +11,11 @@ pub struct UpdateConfig<'info> {
     )]
     pub config_account: Account<'info, Config>,
 }
- pub fn process_update_config(ctx: Context<UpdateConfig>, min_health_factor: u64) -> Result<()> {
+
+pub fn process_update_config(ctx: Context<UpdateConfig>, min_health_factor: u64) -> Result<()> {
+    // I update the minimum health factor parameter
     let config_account = &mut ctx.accounts.config_account;
     config_account.min_health_factor = min_health_factor;
 
     Ok(())
- }
+}

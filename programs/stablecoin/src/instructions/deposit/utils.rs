@@ -10,9 +10,10 @@ pub fn mint_tokens<'info>(
     amount: u64,
     bump: u8,
 ) -> Result<()> { 
-
+    // I need to create the PDA signer seeds to authorize minting
     let signer_seeds: &[&[&[u8]]] = &[&[SEED_MINT_ACCOUNT, &[bump]]];
 
+    // I mint the tokens to the user's token account using the mint authority
     mint_to(
         CpiContext::new_with_signer(
             token_program.to_account_info(),
@@ -27,16 +28,14 @@ pub fn mint_tokens<'info>(
     )?;
     Ok(())
 }
-    
-
-
 
 pub fn deposit_sol<'info>(
     from: &Signer<'info>,
     to: &SystemAccount<'info>,
     amount: u64,
-  system_program: &Program<'info, System>,
+    system_program: &Program<'info, System>,
 ) -> Result<()> {
+    // I transfer SOL from the user to the collateral account
     transfer(
         CpiContext::new(
             system_program.to_account_info(),
